@@ -189,7 +189,7 @@ ${licenseKey}
       </main>
 
       <footer className="fixed bottom-0 left-0 w-full p-2 text-center text-[10px] text-neuro-green/20 bg-neuro-black border-t border-neuro-green/10 pointer-events-none">
-        SECURE CONNECTION // ENCRYPTED // NEUROSHELL SYSTEMS INC.
+        SECURE CONNECTION // ENCRYPTED // DEVELOPED BY AHMAD SYAIFUDDIN // NEUROSHELL SYSTEMS INC.
       </footer>
     </div>
   );
