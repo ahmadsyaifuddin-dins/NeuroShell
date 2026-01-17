@@ -24,11 +24,23 @@ export default async function handler(req, res) {
     const target = await Project.findOne({ licenseKey: key });
     
     if (!target) {
-      return res.json({ status: 'blocked', message: 'License Key Invalid/Not Found.' });
+      return res.json({ status: 'blocked', message: 'License Key Invalid.' });
     }
 
+    // --- INTEL CAPTURE ---
+    // 1. Ambil IP Address (Vercel menaruh IP asli di header x-forwarded-for)
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    // 2. Ambil Info Device (User Agent)
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+
+    // 3. Update Database
     target.lastCheck = new Date();
+    target.lastIP = ip ? ip.split(',')[0] : 'Unknown'; // Ambil IP pertama jika ada koma
+    target.deviceInfo = userAgent;
+    
     await target.save();
+    // ---------------------
 
     return res.json({ status: target.status, message: target.message });
   } catch (error) {

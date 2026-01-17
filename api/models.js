@@ -5,10 +5,13 @@ const ProjectSchema = new mongoose.Schema({
   licenseKey: { type: String, required: true, unique: true },
   status: { type: String, enum: ['active', 'blocked'], default: 'active' }, 
   message: { type: String, default: 'License valid.' }, 
-  lastCheck: { type: Date, default: Date.now }
+  
+  // --- FITUR INTEL BARU ---
+  lastCheck: { type: Date, default: Date.now },
+  lastIP: { type: String, default: '-' },       // Menyimpan IP Terakhir
+  deviceInfo: { type: String, default: '-' }    // Menyimpan User Agent (Browser/OS)
 });
 
-// Cek apakah model sudah ada (biar gak error OverwriteModelError saat hot reload)
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);
 
 export default Project;
