@@ -7,8 +7,7 @@ export default function LockScreen({ onUnlock }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // PASSWORD RAHASIA (Ganti sesuai keinginanmu)
-        const SECRET_PIN = "1337";
+        const SECRET_PIN = import.meta.env.VITE_LOCK_PIN || "0000";
 
         if (pin === SECRET_PIN) {
             onUnlock();
