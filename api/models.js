@@ -6,10 +6,14 @@ const ProjectSchema = new mongoose.Schema({
   status: { type: String, enum: ['active', 'blocked'], default: 'active' }, 
   message: { type: String, default: 'License valid.' }, 
   
-  // --- FITUR INTEL BARU ---
+  // INTEL DATA
   lastCheck: { type: Date, default: Date.now },
-  lastIP: { type: String, default: '-' },       // Menyimpan IP Terakhir
-  deviceInfo: { type: String, default: '-' }    // Menyimpan User Agent (Browser/OS)
+  lastIP: { type: String, default: '-' },       
+  deviceInfo: { type: String, default: '-' },
+
+  // TIME BOMB FEATURE
+  dueDate: { type: Date, default: null }, // Tanggal Jatuh Tempo (Null = Selamanya)
+  autoBlockTriggered: { type: Boolean, default: false } // Penanda kalau dia mati karena bom waktu
 });
 
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);

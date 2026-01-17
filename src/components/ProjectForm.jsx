@@ -1,16 +1,21 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, CalendarClock } from 'lucide-react'; // Tambah icon CalendarClock
 
 export default function ProjectForm({ onAdd }) {
     const [newName, setNewName] = useState('');
     const [newKey, setNewKey] = useState('');
+    const [newDate, setNewDate] = useState(''); // State baru untuk tanggal
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!newName || !newKey) return;
-        onAdd(newName, newKey);
+
+        // Kirim tanggal ke App.jsx
+        onAdd(newName, newKey, newDate);
+
         setNewName('');
         setNewKey('');
+        setNewDate('');
     };
 
     return (
@@ -22,22 +27,36 @@ export default function ProjectForm({ onAdd }) {
                     <Plus size={18} className="text-neuro-green" /> INJECT NEW NODE
                 </h2>
 
-                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
+                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-stretch">
+                    <div className="flex-[2] relative">
                         <input
                             value={newName} onChange={e => setNewName(e.target.value)}
-                            placeholder="PROJECT ALIAS (e.g. SMAN 3)"
-                            className="w-full bg-black/50 border border-neuro-green/30 p-4 text-neuro-green focus:outline-none focus:border-neuro-green focus:ring-1 focus:ring-neuro-green transition-all placeholder-neuro-green/20"
+                            placeholder="PROJECT ALIAS"
+                            className="w-full h-full bg-black/50 border border-neuro-green/30 p-4 text-neuro-green focus:outline-none focus:border-neuro-green placeholder-neuro-green/20"
                         />
                     </div>
-                    <div className="flex-1 relative">
+                    <div className="flex-[2] relative">
                         <input
                             value={newKey} onChange={e => setNewKey(e.target.value)}
-                            placeholder="LICENSE KEY (UNIQUE)"
-                            className="w-full bg-black/50 border border-neuro-green/30 p-4 text-neuro-green focus:outline-none focus:border-neuro-green focus:ring-1 focus:ring-neuro-green transition-all placeholder-neuro-green/20"
+                            placeholder="LICENSE KEY"
+                            className="w-full h-full bg-black/50 border border-neuro-green/30 p-4 text-neuro-green focus:outline-none focus:border-neuro-green placeholder-neuro-green/20"
                         />
                     </div>
-                    <button type="submit" className="bg-neuro-green text-black font-bold px-8 py-4 hover:bg-white hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(0,255,65,0.4)] cursor-pointer">
+
+                    {/* INPUT TANGGAL BARU */}
+                    <div className="flex-1 relative group/date">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neuro-green/50 pointer-events-none">
+                            <CalendarClock size={18} />
+                        </div>
+                        <input
+                            type="date"
+                            value={newDate} onChange={e => setNewDate(e.target.value)}
+                            className="w-full h-full bg-black/50 border border-neuro-green/30 p-4 pl-10 text-neuro-green focus:outline-none focus:border-neuro-green text-sm [color-scheme:dark]"
+                            title="Set Auto-Kill Date (Optional)"
+                        />
+                    </div>
+
+                    <button type="submit" className="bg-neuro-green text-black font-bold px-8 py-4 hover:bg-white transition-all duration-300 shadow-[0_0_15px_rgba(0,255,65,0.4)] cursor-pointer">
                         INJECT
                     </button>
                 </form>

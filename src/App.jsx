@@ -54,13 +54,14 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  const handleAddProject = async (name, key) => {
+  const handleAddProject = async (name, key, date) => {
     try {
       await axios.post(ADMIN_URL, {
         action: 'create',
         projectName: name,
         licenseKey: key,
-        message: 'License Valid. System Operational.'
+        message: 'License Valid. System Operational.',
+        dueDate: date || null
       });
       fetchProjects();
     } catch (err) {

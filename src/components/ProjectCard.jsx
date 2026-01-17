@@ -77,6 +77,22 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy }) {
                         </span>
                     </div>
 
+                    {/* TIME BOMB INFO (BARU) */}
+                    {proj.dueDate && proj.status === 'active' && (
+                        <div className="mt-4 pt-2 border-t border-neuro-green/20 flex items-center gap-2 text-orange-400 animate-pulse">
+                            <Clock size={12} />
+                            <span>BOMB: {new Date(proj.dueDate).toLocaleDateString()}</span>
+                        </div>
+                    )}
+
+                    {/* Kalo sudah meledak */}
+                    {proj.autoBlockTriggered && proj.status === 'blocked' && (
+                        <div className="mt-4 pt-2 border-t border-neuro-red/20 flex items-center gap-2 text-neuro-red">
+                            <Clock size={12} />
+                            <span>EXPLODED (EXPIRED)</span>
+                        </div>
+                    )}
+
                 </div>
 
                 <div className="text-[10px] text-gray-500 mb-8 font-mono flex items-center gap-2">

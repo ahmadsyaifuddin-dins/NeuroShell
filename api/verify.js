@@ -27,20 +27,29 @@ export default async function handler(req, res) {
       return res.json({ status: 'blocked', message: 'License Key Invalid.' });
     }
 
-    // --- INTEL CAPTURE ---
-    // 1. Ambil IP Address (Vercel menaruh IP asli di header x-forwarded-for)
+    // TIME BOMB CHECK PROTOCOL
+    // Cek hanya jika status masih 'active' dan ada dueDate
+    if (target.status === 'active' && target.dueDate) {
+      const now = new Date();
+      const expiryDate = new Date(target.dueDate);
+
+      // Jika HARI INI > JATUH TEMPO
+      if (now > expiryDate) {
+        target.status = 'blocked'; // TRIGGER KILL SWITCH
+        target.message = 'SUBSCRIPTION EXPIRED. PAYMENT REQUIRED.';
+        target.autoBlockTriggered = true;
+        console.log(`[TIME BOMB] Project ${target.projectName} has expired!`);
+      }
+    }
+
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    
-    // 2. Ambil Info Device (User Agent)
     const userAgent = req.headers['user-agent'] || 'Unknown Device';
 
-    // 3. Update Database
     target.lastCheck = new Date();
-    target.lastIP = ip ? ip.split(',')[0] : 'Unknown'; // Ambil IP pertama jika ada koma
+    target.lastIP = ip ? ip.split(',')[0] : 'Unknown';
     target.deviceInfo = userAgent;
     
     await target.save();
-    // ---------------------
 
     return res.json({ status: target.status, message: target.message });
   } catch (error) {
