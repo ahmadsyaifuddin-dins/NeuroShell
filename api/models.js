@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ProjectSchema = new mongoose.Schema({
   projectName: { type: String, required: true },
@@ -8,4 +8,7 @@ const ProjectSchema = new mongoose.Schema({
   lastCheck: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.models.Project || mongoose.model('Project', ProjectSchema);
+// Cek apakah model sudah ada (biar gak error OverwriteModelError saat hot reload)
+const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);
+
+export default Project;

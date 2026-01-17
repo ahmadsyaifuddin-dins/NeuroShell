@@ -1,28 +1,41 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Terminal, Activity, ShieldAlert, Plus, Trash2, Power, RefreshCw } from 'lucide-react';
+import { Terminal, Activity, ShieldAlert, Plus, Trash2, Power, RefreshCw, Code, Copy, Check } from 'lucide-react';
 
 function App() {
+  // Default state array kosong [] biar aman saat load pertama
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
 
   // Form State
   const [newName, setNewName] = useState('');
   const [newKey, setNewKey] = useState('');
 
-  // Ganti URL ini kalau sudah deploy ke Vercel nanti. 
-  // Saat local dev, kita harus pakai proxy atau full URL kalau API jalan di port lain.
-  // SEMENTARA: Kita asumsikan API jalan di relative path /api/admin
-  const API_URL = '/api/admin';
+  // --- KONFIGURASI API ---
+  // PENTING:
+  // 1. Kalau DEPLOY ke Vercel: Gunakan '/api' (Relative Path)
+  // 2. Kalau LOCALHOST tapi mau nembak Vercel: Gunakan URL lengkap 'https://neuroshell-kamu.vercel.app/api'
+  const BASE_URL = '/api';
+  const ADMIN_URL = `${BASE_URL}/admin`;
 
-  // Fetch Data
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_URL);
-      setProjects(res.data);
+      const res = await axios.get(ADMIN_URL);
+      console.log("Respon Server:", res.data); // Cek console browser!
+
+      if (Array.isArray(res.data)) {
+        setProjects(res.data);
+      } else {
+        // Kalau server balikin object error atau HTML, paksa jadi array kosong
+        console.warn("Format data salah, reset ke kosong.");
+        setProjects([]);
+      }
     } catch (err) {
-      console.error("Gagal konek ke Neural Core (API Error)", err);
+      console.error("Gagal konek ke Neural Core:", err);
+      // Jangan biarkan undefined, harus array kosong
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -32,13 +45,11 @@ function App() {
     fetchProjects();
   }, []);
 
-  // Tambah Project
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!newName || !newKey) return;
-
     try {
-      await axios.post(API_URL, {
+      await axios.post(ADMIN_URL, {
         action: 'create',
         projectName: newName,
         licenseKey: newKey,
@@ -48,34 +59,44 @@ function App() {
       setNewKey('');
       fetchProjects();
     } catch (err) {
-      alert("Error: Key mungkin sudah ada.");
+      alert("Gagal. Key mungkin duplikat atau server error.");
     }
   };
 
-  // Kill Switch Action
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
     try {
-      await axios.post(API_URL, {
-        action: 'update_status',
-        id,
-        status: newStatus
-      });
-      fetchProjects(); // Refresh data
-    } catch (err) {
-      alert("Gagal mengubah status neural node.");
-    }
+      await axios.post(ADMIN_URL, { action: 'update_status', id, status: newStatus });
+      fetchProjects();
+    } catch (err) { alert("Error updating status."); }
   };
 
-  // Delete
   const handleDelete = async (id) => {
-    if (!confirm("Putuskan koneksi secara permanen?")) return;
+    if (!confirm("Hapus project ini dari database?")) return;
     try {
-      await axios.post(API_URL, { action: 'delete', id });
+      await axios.post(ADMIN_URL, { action: 'delete', id });
       fetchProjects();
-    } catch (err) {
-      alert("Gagal menghapus.");
-    }
+    } catch (err) { alert("Error deleting."); }
+  };
+
+  const copyConfig = (licenseKey) => {
+    // Ambil domain saat ini otomatis
+    const CURRENT_DOMAIN = window.location.origin;
+    const fullUrl = `${CURRENT_DOMAIN}/api/verify`;
+    const encryptedUrl = btoa(fullUrl);
+
+    const textToCopy = `
+// --- [PASTE INI DI PROJECT KLIEN: ${licenseKey}] ---
+// URL CONFIG (BASE64):
+${encryptedUrl}
+
+// LICENSE KEY:
+${licenseKey}
+    `;
+
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedId(licenseKey);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
@@ -87,29 +108,27 @@ function App() {
           <Terminal size={36} className="text-neuro-green animate-pulse" />
           <div>
             <h1 className="text-3xl font-bold tracking-tighter">NEURO<span className="text-white">SHELL</span>_CORE</h1>
-            <p className="text-xs text-neuro-green/60">COMMAND CENTER // ADMIN_ACCESS_GRANTED</p>
+            <p className="text-xs text-neuro-green/60">UNIVERSAL COMMAND CENTER // V.2.0</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={fetchProjects} className="flex items-center gap-2 text-sm border border-neuro-green/30 px-4 py-2 hover:bg-neuro-green/10 transition">
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> REFRESH NODE
-          </button>
-        </div>
+        <button onClick={fetchProjects} className="flex items-center gap-2 text-sm border border-neuro-green/30 px-4 py-2 hover:bg-neuro-green/10 transition">
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> SYNC DATABASE
+        </button>
       </header>
 
       {/* INPUT FORM */}
-      <div className="mb-12 border border-neuro-green/20 bg-neuro-dark/50 p-6 max-w-2xl mx-auto rounded-sm relative overflow-hidden group">
+      <div className="mb-12 border border-neuro-green/20 bg-neuro-dark/50 p-6 max-w-3xl mx-auto rounded-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-neuro-green/50"></div>
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Plus size={18} /> INJECT NEW NODE</h2>
+        <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Plus size={18} /> DEPLOY NEW TARGET</h2>
         <form onSubmit={handleAdd} className="flex flex-col md:flex-row gap-4">
           <input
             value={newName} onChange={e => setNewName(e.target.value)}
-            placeholder="PROJECT NAME (e.g. LIZA_PKL)"
+            placeholder="PROJECT NAME (e.g. SMAN 3)"
             className="bg-black border border-neuro-green/30 p-3 flex-1 text-neuro-green focus:outline-none focus:border-neuro-green placeholder-neuro-green/30"
           />
           <input
             value={newKey} onChange={e => setNewKey(e.target.value)}
-            placeholder="LICENSE KEY (UNIQUE)"
+            placeholder="LICENSE KEY (e.g. SMAN3-LUNAS)"
             className="bg-black border border-neuro-green/30 p-3 flex-1 text-neuro-green focus:outline-none focus:border-neuro-green placeholder-neuro-green/30"
           />
           <button type="submit" className="bg-neuro-green text-black font-bold px-6 py-3 hover:bg-white transition-colors">
@@ -118,58 +137,74 @@ function App() {
         </form>
       </div>
 
-      {/* PROJECT LIST */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((proj) => (
-          <div key={proj._id} className={`relative border p-6 transition-all duration-300 ${proj.status === 'blocked' ? 'border-neuro-red bg-neuro-red/5' : 'border-neuro-green/30 bg-neuro-dark hover:border-neuro-green'}`}>
+      {/* LIST PROJECT - BAGIAN INI YANG DIPERBAIKI */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 
-            {/* Status Badge */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2">
-                {proj.status === 'active' ? (
-                  <Activity size={18} className="text-neuro-green animate-pulse" />
-                ) : (
-                  <ShieldAlert size={18} className="text-neuro-red" />
-                )}
-                <span className={`text-xs font-bold px-2 py-0.5 border ${proj.status === 'active' ? 'border-neuro-green text-neuro-green' : 'border-neuro-red text-neuro-red'}`}>
-                  {proj.status.toUpperCase()}
-                </span>
+        {/* 1. Loading State */}
+        {loading && projects.length === 0 && (
+          <div className="col-span-full text-center py-10 border border-dashed border-neuro-green/30 text-neuro-green/50 animate-pulse">
+            CONNECTING TO NEURAL DATABASE...
+          </div>
+        )}
+
+        {/* 2. Empty State (Tidak error, tapi kosong) */}
+        {!loading && Array.isArray(projects) && projects.length === 0 && (
+          <div className="col-span-full text-center py-10 text-neuro-green/50">
+            NO ACTIVE NODES DETECTED.
+          </div>
+        )}
+
+        {/* 3. Render Data (Safe Map) */}
+        {/* Kita pastikan projects adalah Array DAN panjangnya > 0 baru di-map */}
+        {Array.isArray(projects) && projects.length > 0 && projects.map((proj) => (
+          <div key={proj._id} className={`relative border p-6 transition-all duration-300 flex flex-col justify-between h-full ${proj.status === 'blocked' ? 'border-neuro-red bg-neuro-red/5' : 'border-neuro-green/30 bg-neuro-dark hover:border-neuro-green'}`}>
+
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-2">
+                  {proj.status === 'active' ? (
+                    <Activity size={18} className="text-neuro-green animate-pulse" />
+                  ) : (
+                    <ShieldAlert size={18} className="text-neuro-red" />
+                  )}
+                  <span className={`text-xs font-bold px-2 py-0.5 border ${proj.status === 'active' ? 'border-neuro-green text-neuro-green' : 'border-neuro-red text-neuro-red'}`}>
+                    {proj.status.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => copyConfig(proj.licenseKey)} className="text-neuro-green/50 hover:text-neuro-green transition p-1" title="Copy Config">
+                    {copiedId === proj.licenseKey ? <Check size={16} /> : <Code size={16} />}
+                  </button>
+                  <button onClick={() => handleDelete(proj._id)} className="text-neuro-green/30 hover:text-neuro-red transition p-1" title="Delete">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <button onClick={() => handleDelete(proj._id)} className="text-neuro-green/30 hover:text-neuro-red transition">
-                <Trash2 size={16} />
-              </button>
+
+              <h3 className="text-xl font-bold mb-1 text-white">{proj.projectName}</h3>
+              <div className="bg-black/40 p-2 rounded border border-white/5 mb-4 font-mono text-xs text-neuro-green/70 break-all">
+                KEY: {proj.licenseKey}
+              </div>
+
+              <div className="text-xs text-gray-500 mb-6 font-mono">
+                Last Ping: {proj.lastCheck ? new Date(proj.lastCheck).toLocaleString() : 'NEVER'}
+              </div>
             </div>
 
-            {/* Content */}
-            <h3 className="text-xl font-bold mb-1 text-white">{proj.projectName}</h3>
-            <p className="text-xs text-neuro-green/50 mb-4 break-all">{proj.licenseKey}</p>
-
-            <div className="text-xs text-gray-500 mb-6 font-mono">
-              Last Ping: {new Date(proj.lastCheck).toLocaleString()}
-            </div>
-
-            {/* Action Button */}
             <button
               onClick={() => toggleStatus(proj._id, proj.status)}
-              className={`w-full flex items-center justify-center gap-2 py-3 font-bold text-sm tracking-wider transition-colors ${proj.status === 'active'
-                  ? 'bg-neuro-red/10 text-neuro-red border border-neuro-red hover:bg-neuro-red hover:text-white'
-                  : 'bg-neuro-green/10 text-neuro-green border border-neuro-green hover:bg-neuro-green hover:text-black'
+              className={`w-full flex items-center justify-center gap-2 py-3 font-bold text-sm tracking-wider transition-colors mt-auto ${proj.status === 'active'
+                ? 'bg-neuro-red/10 text-neuro-red border border-neuro-red hover:bg-neuro-red hover:text-white'
+                : 'bg-neuro-green/10 text-neuro-green border border-neuro-green hover:bg-neuro-green hover:text-black'
                 }`}
             >
               <Power size={16} />
-              {proj.status === 'active' ? 'TERMINATE (KILL)' : 'RESTORE ACCESS'}
+              {proj.status === 'active' ? 'EXECUTE KILL SWITCH' : 'RESTORE SYSTEM'}
             </button>
 
           </div>
         ))}
       </div>
-
-      {projects.length === 0 && !loading && (
-        <div className="text-center text-neuro-green/30 mt-20">
-          <p>NO ACTIVE NODES DETECTED.</p>
-        </div>
-      )}
-
     </div>
   );
 }

@@ -1,11 +1,19 @@
-const connectDB = require('./db_connect');
-const Project = require('./models');
+import connectDB from './db_connect.js';
+import Project from './models.js';
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Penting biar bisa diakses dari mana aja
+export default async function handler(req, res) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   await connectDB();
   const { key } = req.query;
@@ -19,7 +27,6 @@ module.exports = async (req, res) => {
       return res.json({ status: 'blocked', message: 'License Key Invalid/Not Found.' });
     }
 
-    // Update waktu terakhir akses (biar kamu tau dia online)
     target.lastCheck = new Date();
     await target.save();
 
@@ -27,4 +34,4 @@ module.exports = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Server Error' });
   }
-};
+}
