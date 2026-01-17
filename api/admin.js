@@ -13,13 +13,22 @@ export default async function handler(req, res) {
     const { action, id, projectName, licenseKey, status } = req.body;
 
     try {
-      if (action === 'create') {
-        const newProject = await Project.create({ 
-          projectName, 
-          licenseKey, 
-          message: 'License Valid. System Operational.' 
-        });
-        return res.status(200).json(newProject);
+      if (action === 'update_status') {
+        // Tentukan pesan berdasarkan status baru
+        let newMessage = '';
+        if (status === 'blocked') {
+          newMessage = 'ACCESS DENIED. PEMBAYARAN TERTUNDA. HUBUNGI DEVELOPER SEGERA.';
+        } else {
+          newMessage = 'License Valid. System Operational.';
+        }
+
+        // Update status DAN message
+        const updated = await Project.findByIdAndUpdate(id, { 
+          status: status,
+          message: newMessage
+        }, { new: true });
+        
+        return res.status(200).json(updated);
       }
       
       if (action === 'update_status') {
