@@ -39,13 +39,15 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                         </span>
                     </div>
 
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                         <button onClick={handleCopy} className="p-2 hover:bg-neuro-green hover:text-black rounded transition text-neuro-green" title="Copy Config">
                             {copied ? <Check size={16} /> : <Code size={16} />}
                         </button>
+
                         <button onClick={() => onEdit(proj)} className="p-2 hover:bg-blue-500 hover:text-white rounded transition text-blue-400" title="Edit Config">
                             <Pencil size={16} />
                         </button>
+
                         <button onClick={() => onDelete(proj._id)} className="p-2 hover:bg-neuro-red hover:text-white rounded transition text-neuro-red/60" title="Delete">
                             <Trash2 size={16} />
                         </button>
