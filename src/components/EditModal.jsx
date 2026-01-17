@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Save, X, CalendarClock, MessageSquare, AlertTriangle } from 'lucide-react';
 import { formatDateForInput } from '../utils/date';
+import { MESSAGE_PRESETS } from '../data/messagePresets';
 
 export default function EditModal({ project, onClose, onSave }) {
     const [name, setName] = useState(project.projectName);
@@ -8,15 +9,6 @@ export default function EditModal({ project, onClose, onSave }) {
     const [msg, setMsg] = useState(project.message || "License Valid."); // State Message
 
     const [date, setDate] = useState(formatDateForInput(project.dueDate));
-
-    // DAFTAR PRESET PESAN (Ganti sesuka hati)
-    const PRESETS = [
-        { label: "NORMAL", color: "border-neuro-green text-neuro-green", text: "License Valid. System Operational." },
-        { label: "MAINTENANCE", color: "border-yellow-500 text-yellow-500", text: "System under maintenance. Please try again later." },
-        { label: "TAGIHAN (SOPAN)", color: "border-blue-400 text-blue-400", text: "Masa aktif lisensi telah habis. Silakan hubungi developer untuk perpanjangan." },
-        { label: "TAGIHAN (GALAK)", color: "border-neuro-red text-neuro-red", text: "AKSES DITOLAK! SEGERA LUNASI PEMBAYARAN ANDA." },
-        { label: "FAKE ERROR", color: "border-gray-400 text-gray-400", text: "Critical System Failure. Error Code: 0x500 Internal Server Error." },
-    ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -66,14 +58,15 @@ export default function EditModal({ project, onClose, onSave }) {
                             <AlertTriangle size={12} /> DISPLAY MESSAGE (CLIENT SIDE)
                         </label>
 
-                        {/* Tombol Preset */}
+                        {/* Tombol Preset (Looping data dari import) */}
                         <div className="flex flex-wrap gap-2 mb-3">
-                            {PRESETS.map((preset, idx) => (
+                            {MESSAGE_PRESETS.map((preset, idx) => (
                                 <button
                                     key={idx}
                                     type="button"
                                     onClick={() => setMsg(preset.text)}
                                     className={`px-3 py-1 border text-[10px] font-bold rounded hover:bg-white/10 transition ${preset.color}`}
+                                    title={preset.text} // Biar user bisa hover buat liat isi pesannya
                                 >
                                     {preset.label}
                                 </button>
@@ -85,7 +78,7 @@ export default function EditModal({ project, onClose, onSave }) {
                             value={msg}
                             onChange={e => setMsg(e.target.value)}
                             rows={3}
-                            className="w-full bg-black/50 border border-neuro-green/30 p-3 text-neuro-green focus:border-neuro-green focus:outline-none text-xs font-mono"
+                            className="w-full bg-black/50 border border-neuro-green/30 p-3 text-neuro-green focus:border-neuro-green focus:outline-none text-xs font-mono placeholder-neuro-green/20"
                             placeholder="Custom message for client..."
                         />
                     </div>
