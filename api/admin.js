@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const { action, id, projectName, licenseKey, status, dueDate } = req.body;
 
     try {
-      // --- ACTION: CREATE ---
+      // ACTION: CREATE
       if (action === 'create') {
         const exists = await Project.findOne({ licenseKey });
         if (exists) {
