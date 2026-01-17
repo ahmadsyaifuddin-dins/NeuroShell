@@ -80,8 +80,10 @@ function App() {
 
 
   // Handle Save Edit
-  const handleUpdateProject = async (id, name, key, date) => {
+  const handleUpdateProject = async (id, name, key, date, msg) => {
     try {
+      // console.log("Sending Data:", { id, name, key, date, msg }); // Cek data yg dikirim
+
       await axios.post(ADMIN_URL, {
         action: 'update_details',
         id: id,
@@ -90,10 +92,10 @@ function App() {
         dueDate: date || null,
         message: msg
       });
-      setEditingProject(null); // Tutup modal
-      fetchProjects(); // Refresh data
+
+      setEditingProject(null);
+      fetchProjects();
     } catch (err) {
-      alert("Update failed.");
     }
   };
 

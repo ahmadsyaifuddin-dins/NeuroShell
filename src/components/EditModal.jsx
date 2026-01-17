@@ -13,7 +13,7 @@ export default function EditModal({ project, onClose, onSave }) {
 
     const [date, setDate] = useState(formatDate(project.dueDate));
 
-    // --- DAFTAR PRESET PESAN (Ganti sesuka hati) ---
+    // DAFTAR PRESET PESAN (Ganti sesuka hati)
     const PRESETS = [
         { label: "NORMAL", color: "border-neuro-green text-neuro-green", text: "License Valid. System Operational." },
         { label: "MAINTENANCE", color: "border-yellow-500 text-yellow-500", text: "System under maintenance. Please try again later." },
@@ -24,7 +24,6 @@ export default function EditModal({ project, onClose, onSave }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Kirim msg juga
         onSave(project._id, name, key, date, msg);
     };
 

@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         return res.status(200).json(newProject);
       }
       
-      // --- ACTION: UPDATE STATUS (Kill Switch) ---
+      // ACTION: UPDATE STATUS (Kill Switch)
       if (action === 'update_status') {
         let newMessage = '';
         if (status === 'blocked') {
