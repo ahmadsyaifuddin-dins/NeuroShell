@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil } from 'lucide-react';
+import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare } from 'lucide-react';
 
 export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
     const [copied, setCopied] = useState(false);
@@ -78,6 +78,16 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                         <span className="text-gray-400 line-clamp-2 leading-tight" title={proj.deviceInfo}>
                             {proj.deviceInfo || '-'}
                         </span>
+                    </div>
+
+                    {/* ACTIVE MESSAGE PREVIEW */}
+                    <div className="mt-3 pt-3 border-t border-neuro-green/10">
+                        <div className="flex items-center gap-2 text-[10px] text-neuro-green/50 mb-1">
+                            <MessageSquare size={10} /> <span>ACTIVE MESSAGE:</span>
+                        </div>
+                        <p className="text-[10px] text-gray-300 italic opacity-80 line-clamp-2 bg-black/30 p-2 rounded border border-white/5">
+                            "{proj.message}"
+                        </p>
                     </div>
 
                     {/* TIME BOMB INFO (BARU) */}

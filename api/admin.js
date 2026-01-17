@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   // 3. POST: Aksi (Create, Update, Delete)
   if (req.method === 'POST') {
-    const { action, id, projectName, licenseKey, status, dueDate } = req.body;
+    const { action, id, projectName, licenseKey, status, dueDate, message } = req.body;
 
     try {
       // ACTION: CREATE
@@ -55,19 +55,19 @@ export default async function handler(req, res) {
         return res.status(200).json(updated);
       }
 
-      // --- ACTION: UPDATE DETAILS (Edit Project) ---
-      // PERBAIKAN: Blok ini sekarang SEJAJAR dengan update_status (tidak di dalamnya)
+      // ACTION: UPDATE DETAILS (Edit Project & Message)
       if (action === 'update_details') {
         const updated = await Project.findByIdAndUpdate(id, {
           projectName,
           licenseKey,
-          dueDate: dueDate ? new Date(dueDate) : null
+          dueDate: dueDate ? new Date(dueDate) : null,
+          message: message // Update pesan custom
         }, { new: true });
 
         return res.status(200).json(updated);
       }
 
-      // --- ACTION: DELETE ---
+      // ACTION: DELETE
       if (action === 'delete') {
         await Project.findByIdAndDelete(id);
         return res.status(200).json({ success: true });
@@ -79,6 +79,5 @@ export default async function handler(req, res) {
     }
   }
 
-  // Jika method bukan GET atau POST, atau Action tidak dikenali
-  return res.status(405).json({ error: 'Method Not Allowed / Action Unknown' });
+  return res.status(405).json({ error: 'Method Not Allowed' });
 }

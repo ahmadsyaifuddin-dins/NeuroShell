@@ -87,7 +87,8 @@ function App() {
         id: id,
         projectName: name,
         licenseKey: key,
-        dueDate: date || null
+        dueDate: date || null,
+        message: msg
       });
       setEditingProject(null); // Tutup modal
       fetchProjects(); // Refresh data
