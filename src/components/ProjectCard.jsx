@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Activity, ShieldAlert, Trash2, Power, Code, Check } from 'lucide-react';
+import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil } from 'lucide-react';
 
-export default function ProjectCard({ proj, onToggle, onDelete, onCopy }) {
+export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -42,6 +42,9 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy }) {
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={handleCopy} className="p-2 hover:bg-neuro-green hover:text-black rounded transition text-neuro-green" title="Copy Config">
                             {copied ? <Check size={16} /> : <Code size={16} />}
+                        </button>
+                        <button onClick={() => onEdit(proj)} className="p-2 hover:bg-blue-500 hover:text-white rounded transition text-blue-400" title="Edit Config">
+                            <Pencil size={16} />
                         </button>
                         <button onClick={() => onDelete(proj._id)} className="p-2 hover:bg-neuro-red hover:text-white rounded transition text-neuro-red/60" title="Delete">
                             <Trash2 size={16} />

@@ -7,9 +7,10 @@ import LockScreen from './components/LockScreen';
 import Header from './components/Header';
 import ProjectForm from './components/ProjectForm';
 import ProjectCard from './components/ProjectCard';
+import EditModal from './components/EditModal';
 
 function App() {
-  // --- AUTH LOGIC (MODIFIED) ---
+  // AUTH LOGIC 
   // Cek localStorage saat pertama kali load
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('neuro_access_token') === 'GRANTED';
@@ -26,15 +27,15 @@ function App() {
     localStorage.removeItem('neuro_access_token');
     setIsAuthenticated(false);
   };
-  // -----------------------------
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
 
   const BASE_URL = '/api';
   const ADMIN_URL = `${BASE_URL}/admin`;
 
-  // --- LOGIC FUNCTIONS (Sama seperti sebelumnya) ---
+  // LOGIC FUNCTIONS 
   const fetchProjects = async () => {
     setLoading(true);
     try {
@@ -75,6 +76,24 @@ function App() {
       await axios.post(ADMIN_URL, { action: 'update_status', id, status: newStatus });
       fetchProjects();
     } catch (err) { alert("Error updating status."); }
+  };
+
+
+  // Handle Save Edit
+  const handleUpdateProject = async (id, name, key, date) => {
+    try {
+      await axios.post(ADMIN_URL, {
+        action: 'update_details',
+        id: id,
+        projectName: name,
+        licenseKey: key,
+        dueDate: date || null
+      });
+      setEditingProject(null); // Tutup modal
+      fetchProjects(); // Refresh data
+    } catch (err) {
+      alert("Update failed.");
+    }
   };
 
   const handleDeleteProject = async (id) => {
@@ -121,6 +140,15 @@ ${licenseKey}
         onLogout={handleLogout}
       />
 
+      {/* TAMPILKAN MODAL JIKA ADA PROJECT YANG DIEDIT */}
+      {editingProject && (
+        <EditModal
+          project={editingProject}
+          onClose={() => setEditingProject(null)}
+          onSave={handleUpdateProject}
+        />
+      )}
+
       <main className="max-w-6xl mx-auto space-y-12">
         <ProjectForm onAdd={handleAddProject} />
 
@@ -151,6 +179,7 @@ ${licenseKey}
               onToggle={handleToggleStatus}
               onDelete={handleDeleteProject}
               onCopy={handleCopyConfig}
+              onEdit={(project) => setEditingProject(project)}
             />
           ))}
         </div>
