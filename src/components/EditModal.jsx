@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { Save, X, CalendarClock, MessageSquare, AlertTriangle } from 'lucide-react';
+import { formatDateForInput } from '../utils/date';
 
 export default function EditModal({ project, onClose, onSave }) {
     const [name, setName] = useState(project.projectName);
     const [key, setKey] = useState(project.licenseKey);
     const [msg, setMsg] = useState(project.message || "License Valid."); // State Message
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        return new Date(dateString).toISOString().split('T')[0];
-    };
-
-    const [date, setDate] = useState(formatDate(project.dueDate));
+    const [date, setDate] = useState(formatDateForInput(project.dueDate));
 
     // DAFTAR PRESET PESAN (Ganti sesuka hati)
     const PRESETS = [

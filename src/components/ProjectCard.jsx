@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare } from 'lucide-react';
+import { formatDateTime } from '../utils/date';
 
 export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
     const [copied, setCopied] = useState(false);
@@ -65,7 +66,7 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                     {/* Waktu */}
                     <div className="flex items-center gap-2">
                         <Activity size={12} className="text-neuro-green" />
-                        <span>LAST SEEN: {proj.lastCheck ? new Date(proj.lastCheck).toLocaleString() : 'NEVER'}</span>
+                        <span>LAST SEEN: {formatDateTime(proj.lastCheck)}</span>
                     </div>
 
                     {/* IP Address */}
