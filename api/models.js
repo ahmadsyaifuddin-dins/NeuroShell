@@ -11,9 +11,14 @@ const ProjectSchema = new mongoose.Schema({
   lastIP: { type: String, default: '-' },       
   deviceInfo: { type: String, default: '-' },
 
-  // TIME BOMB FEATURE
-  dueDate: { type: Date, default: null }, // Tanggal Jatuh Tempo (Null = Selamanya)
-  autoBlockTriggered: { type: Boolean, default: false } // Penanda kalau dia mati karena bom waktu
+  // TIME BOMB
+  dueDate: { type: Date, default: null },
+  autoBlockTriggered: { type: Boolean, default: false },
+
+  // Menyimpan hash dari APP_KEY laravel korban
+  clientFingerprint: { type: String, default: null }, 
+  // Jika true, maka jika fingerprint berubah, otomatis blokir
+  lockToFingerprint: { type: Boolean, default: true } 
 });
 
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);

@@ -108,19 +108,35 @@ function App() {
   };
 
   const handleCopyConfig = (licenseKey) => {
-    const CURRENT_DOMAIN = window.location.origin;
-    const fullUrl = `${CURRENT_DOMAIN}/api/verify`;
-    const encryptedUrl = btoa(fullUrl);
+    // 1. Tentukan URL Production (JANGAN localhost, harus Vercel)
+    const TARGET_URL = "https://neuro-shell.vercel.app/api/verify";
 
+    // 2. Fungsi Helper: String ke ASCII Array (format: 104, 116, ...)
+    const toAscii = (str) => {
+      return str.split('').map(char => char.charCodeAt(0)).join(', ');
+    };
+
+    // 3. Generate ASCII
+    const asciiUrl = toAscii(TARGET_URL);
+    const asciiKey = toAscii(licenseKey);
+
+    // 4. Template Teks untuk dicopy
     const textToCopy = `
-// --- [PASTE INI DI PROJECT KLIEN: ${licenseKey}] ---
-// URL CONFIG (BASE64):
-${encryptedUrl}
+        // --- [PASTE INI DI FILE: App/Traits/SystemIntegrityTrait.php] ---
+        // Gantikan bagian "// 3. KONFIGURASI TERSEMBUNYI" dengan ini:
 
-// LICENSE KEY:
-${licenseKey}
+        // URL ENGINE
+        $rawUrl = [${asciiUrl}];
+        
+        // LICENSE KEY: "${licenseKey}"
+        $rawKey = [${asciiKey}];
     `;
+
+    // 5. Salin ke Clipboard
     navigator.clipboard.writeText(textToCopy);
+
+    // Feedback UI (Optional, kalau kamu pakai state copied)
+    // alert("Config Copied! Ready to inject.");
   };
 
   // --- RENDER ---
