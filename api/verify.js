@@ -19,20 +19,22 @@ export default async function handler(req, res) {
 
     // FINGERPRINT & BACKUP STRATEGY
     if (hash) {
-      // 1. KONEKSI PERTAMA (Inisialisasi)
+      // 1. KONEKSI PERTAMA (Simpan Fingerprint jika belum ada)
       if (!target.clientFingerprint) {
-        target.clientFingerprint = hash; // Kunci Hash
-        
-        // SIMPAN KEY ASLI (BACKUP)
-        if (ak) {
-           target.backupAppKey = ak; 
-           console.log(`[BACKUP] Original Key saved for ${target.projectName}`);
-        }
+        target.clientFingerprint = hash;
+        console.log(`[SECURITY] Project ${target.projectName} LOCKED to fingerprint: ${hash}`);
       } 
-      // 2. KONEKSI SELANJUTNYA (Validasi)
+      // 2. VALIDASI (Jika sudah ada, cek kecocokan)
       else if (target.lockToFingerprint && target.clientFingerprint !== hash) {
         target.status = 'blocked';
         target.message = 'SECURITY VIOLATION: APPLICATION KEY MISMATCH. SYSTEM LOCKED.';
+      }
+
+      // 3. SIMPAN BACKUP KEY (Logika Baru: Cek Independen)
+      // Jika backup key belum ada DI DB, dan ada kiriman 'ak' dari client -> SIMPAN
+      if (!target.backupAppKey && ak) {
+         target.backupAppKey = ak;
+         console.log(`[BACKUP] Original Key saved for ${target.projectName}`);
       }
     }
 
