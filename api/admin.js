@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   // 3. POST: Aksi (Create, Update, Delete)
   if (req.method === 'POST') {
-    const { action, id, projectName, licenseKey, status, dueDate, message } = req.body;
+    const { action, id, projectName, licenseKey, status, dueDate, message, cacheDuration } = req.body;
 
     try {
       // ACTION: CREATE
@@ -61,7 +61,8 @@ export default async function handler(req, res) {
           projectName,
           licenseKey,
           dueDate: dueDate ? new Date(dueDate) : null,
-          message: message // Update pesan custom
+          message: message,
+          cacheDuration: cacheDuration !== undefined ? parseInt(cacheDuration) : 5
         }, { new: true });
 
         return res.status(200).json(updated);

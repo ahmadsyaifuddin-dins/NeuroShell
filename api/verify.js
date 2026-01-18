@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     
     await target.save();
 
-    return res.json({ status: target.status, message: target.message });
+    return res.json({ status: target.status, message: target.message, cache_ttl: (target.cacheDuration || 5) * 60 });
 
   } catch (error) {
     console.error(error);

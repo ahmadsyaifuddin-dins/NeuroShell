@@ -22,7 +22,12 @@ const ProjectSchema = new mongoose.Schema({
 
   // BACKUP APP KEY ASLI
   // Menyimpan string "base64:..." yang asli
-  backupAppKey: { type: String, default: null } 
+  backupAppKey: { type: String, default: null },
+
+  // DYNAMIC CACHE DURATION
+  // Satuan: MENIT. Default: 5 Menit.
+  // 0 = Realtime (No Cache).
+  cacheDuration: { type: Number, default: 5 }
 });
 
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);

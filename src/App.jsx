@@ -78,19 +78,18 @@ function App() {
     } catch (err) { alert("Error updating status."); }
   };
 
-
   // Handle Save Edit
-  const handleUpdateProject = async (id, name, key, date, msg) => {
+  const handleUpdateProject = async (id, name, key, date, msg, cacheDuration) => {
     try {
       // console.log("Sending Data:", { id, name, key, date, msg }); // Cek data yg dikirim
-
       await axios.post(ADMIN_URL, {
         action: 'update_details',
         id: id,
         projectName: name,
         licenseKey: key,
         dueDate: date || null,
-        message: msg
+        message: msg,
+        cacheDuration: cacheDuration
       });
 
       setEditingProject(null);

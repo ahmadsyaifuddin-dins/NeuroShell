@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, X, CalendarClock, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Save, X, CalendarClock, MessageSquare, AlertTriangle, Zap } from 'lucide-react';
 import { formatDateForInput } from '../utils/date';
 import { MESSAGE_PRESETS } from '../data/messagePresets';
 
@@ -10,9 +10,11 @@ export default function EditModal({ project, onClose, onSave }) {
 
     const [date, setDate] = useState(formatDateForInput(project.dueDate));
 
+    const [cacheDur, setCacheDur] = useState(project.cacheDuration !== undefined ? project.cacheDuration : 5);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(project._id, name, key, date, msg);
+        onSave(project._id, name, key, date, msg, cacheDur);
     };
 
     return (
@@ -50,6 +52,25 @@ export default function EditModal({ project, onClose, onSave }) {
                             <CalendarClock size={12} /> TIME BOMB (DUE DATE)
                         </label>
                         <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full bg-black/50 border border-neuro-green/30 p-3 text-neuro-green focus:border-neuro-green focus:outline-none text-xs [color-scheme:dark]" />
+                    </div>
+
+                    {/* INPUT CACHE DURATION */}
+                    <div>
+                        <label className="text-[10px] text-neuro-green/60 block mb-1 flex items-center gap-2">
+                            <Zap size={12} /> STEALTH MODE (CACHE)
+                        </label>
+                        <select
+                            value={cacheDur}
+                            onChange={e => setCacheDur(e.target.value)}
+                            className="w-full bg-black/50 border border-neuro-green/30 p-2 text-neuro-green focus:border-neuro-green focus:outline-none text-xs font-mono rounded"
+                        >
+                            <option value="0">OFF (Realtime - Aggressive)</option>
+                            <option value="5">5 Minutes (Balanced)</option>
+                            <option value="10">10 Minutes</option>
+                            <option value="15">15 Minutes</option>
+                            <option value="30">30 Minutes</option>
+                            <option value="60">1 Hour (Max Performance)</option>
+                        </select>
                     </div>
 
                     {/* Baris 3: MESSAGE PRESETS */}
@@ -90,7 +111,7 @@ export default function EditModal({ project, onClose, onSave }) {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
