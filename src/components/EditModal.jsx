@@ -62,14 +62,14 @@ export default function EditModal({ project, onClose, onSave }) {
                         <select
                             value={cacheDur}
                             onChange={e => setCacheDur(e.target.value)}
-                            className="w-full bg-black/50 border border-neuro-green/30 p-2 text-neuro-green focus:border-neuro-green focus:outline-none text-xs font-mono rounded"
+                            className="w-full bg-slate-950 border border-neuro-green/30 p-2 text-neuro-green focus:border-neuro-green focus:outline-none text-xs font-mono rounded"
                         >
-                            <option value="0">OFF (Realtime - Aggressive)</option>
+                            <option value="0" className='text-red-600'>OFF (Realtime - Aggressive)</option>
                             <option value="5">5 Minutes (Balanced)</option>
                             <option value="10">10 Minutes</option>
                             <option value="15">15 Minutes</option>
                             <option value="30">30 Minutes</option>
-                            <option value="60">1 Hour (Max Performance)</option>
+                            <option value="60" className='text-indigo-600'>1 Hour (Max Performance)</option>
                         </select>
                     </div>
 
