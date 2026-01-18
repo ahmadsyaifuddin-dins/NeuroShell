@@ -2,43 +2,49 @@ import connectDB from './db_connect.js';
 import Project from './models.js';
 
 export default async function handler(req, res) {
+  // 1. Konek Database
   await connectDB();
 
-  const { key, hash, ak} = req.query; // Kita terima parameter 'hash' (dari Trait PHP tadi)
+  // 2. Ambil Parameter dari Request
+  const { key, hash, ak } = req.query; 
 
+  // Validasi Dasar
   if (!key) {
     return res.status(400).json({ status: 'error', message: 'No License Key' });
   }
 
   try {
+    // Cari Project Berdasarkan License Key
     const target = await Project.findOne({ licenseKey: key });
     
+    // Jika tidak ketemu -> Blokir
     if (!target) {
       return res.json({ status: 'blocked', message: 'License Key Invalid.' });
     }
 
     // FINGERPRINT & BACKUP STRATEGY
     if (hash) {
-      // 1. KONEKSI PERTAMA (Simpan Fingerprint jika belum ada)
+      // A. KONEKSI PERTAMA (Simpan Fingerprint jika belum ada)
       if (!target.clientFingerprint) {
         target.clientFingerprint = hash;
         console.log(`[SECURITY] Project ${target.projectName} LOCKED to fingerprint: ${hash}`);
       } 
-      // 2. VALIDASI (Jika sudah ada, cek kecocokan)
+      // B. VALIDASI (Jika sudah ada, cek kecocokan)
       else if (target.lockToFingerprint && target.clientFingerprint !== hash) {
         target.status = 'blocked';
         target.message = 'SECURITY VIOLATION: APPLICATION KEY MISMATCH. SYSTEM LOCKED.';
+        console.log(`[ALERT] Fingerprint Mismatch for ${target.projectName}! Blocked.`);
       }
 
-      // 3. SIMPAN BACKUP KEY (Logika Baru: Cek Independen)
-      // Jika backup key belum ada DI DB, dan ada kiriman 'ak' dari client -> SIMPAN
+      // C. SIMPAN BACKUP KEY (Logika Independen)
+      // Simpan Key Asli jika di database belum ada, tapi client mengirimkannya
       if (!target.backupAppKey && ak) {
          target.backupAppKey = ak;
          console.log(`[BACKUP] Original Key saved for ${target.projectName}`);
       }
     }
 
-    // TIME BOMB CHECK (Logic Lama)
+    // TIME BOMB CHECK
     if (target.status === 'active' && target.dueDate) {
       const now = new Date();
       const expiryDate = new Date(target.dueDate);
@@ -49,7 +55,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // INTEL CAPTURE (Logic Lama)
+    // INTEL CAPTURE (Update Statistik)
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'] || 'Unknown Device';
 
@@ -57,12 +63,21 @@ export default async function handler(req, res) {
     target.lastIP = ip ? ip.split(',')[0] : 'Unknown';
     target.deviceInfo = userAgent;
     
+    // Simpan perubahan ke database
     await target.save();
 
-    return res.json({ status: target.status, message: target.message, cache_ttl: (target.cacheDuration || 5) * 60 });
+    // RESPONSE KE CLIENT
+    const durationMinutes = target.cacheDuration !== undefined ? target.cacheDuration : 5;
+
+    return res.json({ 
+        status: target.status, 
+        message: target.message, 
+        // Konversi menit ke detik untuk Laravel
+        cache_ttl: durationMinutes * 60 
+    });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ status: 'error' });
+    console.error("Verify API Error:", error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 }
