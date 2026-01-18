@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare } from 'lucide-react';
+import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare, Key } from 'lucide-react';
 import { formatDateTime } from '../utils/date';
 
 export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
     const [copied, setCopied] = useState(false);
+
+    const handleCopyBackupKey = () => {
+        if (proj.backupAppKey) {
+            navigator.clipboard.writeText(proj.backupAppKey);
+            alert(`Backup Key Copied:\n${proj.backupAppKey}`);
+        } else {
+            alert("No backup key saved yet (Waiting for first connection).");
+        }
+    };
 
     const handleCopy = () => {
         onCopy(proj.licenseKey);
@@ -44,6 +53,12 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                         <button onClick={handleCopy} className="p-2 hover:bg-neuro-green hover:text-black rounded transition text-neuro-green" title="Copy Config">
                             {copied ? <Check size={16} /> : <Code size={16} />}
                         </button>
+
+                        {proj.backupAppKey && (
+                            <button onClick={handleCopyBackupKey} className="p-2 hover:bg-yellow-500 hover:text-black rounded transition text-yellow-500" title="Copy Original Laravel APP_KEY">
+                                <Key size={16} />
+                            </button>
+                        )}
 
                         <button onClick={() => onEdit(proj)} className="p-2 hover:bg-blue-500 hover:text-white rounded transition text-blue-400" title="Edit Config">
                             <Pencil size={16} />

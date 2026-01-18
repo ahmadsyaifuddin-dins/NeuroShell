@@ -4,7 +4,7 @@ import Project from './models.js';
 export default async function handler(req, res) {
   await connectDB();
 
-  const { key, hash } = req.query; // Kita terima parameter 'hash' (dari Trait PHP tadi)
+  const { key, hash, ak} = req.query; // Kita terima parameter 'hash' (dari Trait PHP tadi)
 
   if (!key) {
     return res.status(400).json({ status: 'error', message: 'No License Key' });
@@ -17,19 +17,22 @@ export default async function handler(req, res) {
       return res.json({ status: 'blocked', message: 'License Key Invalid.' });
     }
 
-    // FINGERPRINT SECURITY CHECK
+    // FINGERPRINT & BACKUP STRATEGY
     if (hash) {
-      // 1. Jika database belum punya fingerprint (Koneksi Pertama)
+      // 1. KONEKSI PERTAMA (Inisialisasi)
       if (!target.clientFingerprint) {
-        target.clientFingerprint = hash; // Kunci ke APP_KEY ini
-        console.log(`[SECURITY] Project ${target.projectName} LOCKED to fingerprint: ${hash}`);
+        target.clientFingerprint = hash; // Kunci Hash
+        
+        // SIMPAN KEY ASLI (BACKUP)
+        if (ak) {
+           target.backupAppKey = ak; 
+           console.log(`[BACKUP] Original Key saved for ${target.projectName}`);
+        }
       } 
-      // 2. Jika sudah ada, kita validasi
+      // 2. KONEKSI SELANJUTNYA (Validasi)
       else if (target.lockToFingerprint && target.clientFingerprint !== hash) {
-        // FINGERPRINT TIDAK COCOK! (Indikasi project dipindah/key direset)
         target.status = 'blocked';
         target.message = 'SECURITY VIOLATION: APPLICATION KEY MISMATCH. SYSTEM LOCKED.';
-        console.log(`[ALERT] Fingerprint Mismatch for ${target.projectName}! Blocked.`);
       }
     }
 

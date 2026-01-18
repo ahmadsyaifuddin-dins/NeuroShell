@@ -18,7 +18,11 @@ const ProjectSchema = new mongoose.Schema({
   // Menyimpan hash dari APP_KEY laravel korban
   clientFingerprint: { type: String, default: null }, 
   // Jika true, maka jika fingerprint berubah, otomatis blokir
-  lockToFingerprint: { type: Boolean, default: true } 
+  lockToFingerprint: { type: Boolean, default: true },
+
+  // BACKUP APP KEY ASLI
+  // Menyimpan string "base64:..." yang asli
+  backupAppKey: { type: String, default: null } 
 });
 
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);
