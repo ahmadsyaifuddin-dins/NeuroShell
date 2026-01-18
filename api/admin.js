@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       if (action === 'update_status') {
         let newMessage = '';
         if (status === 'blocked') {
-          newMessage = 'ACCESS DENIED. PEMBAYARAN TERTUNDA. HUBUNGI DEVELOPER SEGERA.';
+          newMessage = 'AKSES KE APLIKASI TERBLOKIR. PEMBAYARAN TERTUNDA. HUBUNGI DEVELOPER SEGERA !!!';
         } else {
           newMessage = 'License Valid. System Operational.';
         }
