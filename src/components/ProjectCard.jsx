@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare, Key } from 'lucide-react';
+// Tambahkan ikon 'Monitor' atau 'Laptop' dari lucide-react
+import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare, Key, Monitor, Wifi } from 'lucide-react';
 import { formatDateTime } from '../utils/date';
 
 export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
@@ -49,6 +50,7 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                         </span>
                     </div>
 
+                    {/* Action Buttons */}
                     <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                         <button onClick={handleCopy} className="p-2 hover:bg-neuro-green hover:text-black rounded transition text-neuro-green" title="Copy Config">
                             {copied ? <Check size={16} /> : <Code size={16} />}
@@ -70,15 +72,16 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                     </div>
                 </div>
 
-                {/* Isi Kartu */}
-                <h3 className="text-xl font-bold mb-2 text-white truncate">{proj.projectName}</h3>
-                <div className="bg-black/60 p-3 rounded border border-white/5 mb-4 font-mono text-[10px] text-neuro-green/60 break-all">
-                    KEY_HASH: {proj.licenseKey}
+                {/* Nama Project & Key */}
+                <h3 className="text-xl font-bold mb-2 text-white truncate" title={proj.projectName}>{proj.projectName}</h3>
+                <div className="bg-black/60 p-3 rounded border border-white/5 mb-4 font-mono text-[10px] text-neuro-green/60 break-all select-all">
+                    KEY: {proj.licenseKey}
                 </div>
 
-                <div className="space-y-2 mb-6 text-[10px] font-mono text-gray-500">
+                {/* Info Statistik */}
+                <div className="space-y-3 mb-6 text-[10px] font-mono text-gray-500">
 
-                    {/* Waktu */}
+                    {/* Waktu Last Seen */}
                     <div className="flex items-center gap-2">
                         <Activity size={12} className="text-neuro-green" />
                         <span>LAST SEEN: {formatDateTime(proj.lastCheck)}</span>
@@ -86,15 +89,15 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
 
                     {/* IP Address */}
                     <div className="flex items-center gap-2">
-                        <span className="text-neuro-red font-bold">IP:</span>
-                        <span className="text-gray-400">{proj.lastIP || '-'}</span>
+                        <Wifi size={12} className="text-neuro-red" />
+                        <span className="text-gray-400">{proj.lastIP || 'UNKNOWN'}</span>
                     </div>
 
-                    {/* Device Info (Truncate biar gak kepanjangan) */}
-                    <div className="flex items-start gap-2">
-                        <span className="text-neuro-green font-bold">DEV:</span>
-                        <span className="text-gray-400 line-clamp-2 leading-tight" title={proj.deviceInfo}>
-                            {proj.deviceInfo || '-'}
+                    {/* Device Info (Highlight) */}
+                    <div className="flex items-start gap-2 bg-neuro-green/5 p-2 rounded border border-neuro-green/10">
+                        <Monitor size={14} className="text-neuro-green mt-[1px]" />
+                        <span className="text-neuro-green/80 line-clamp-2 leading-tight break-words uppercase" title={proj.deviceInfo}>
+                            {proj.deviceInfo || 'NO DEVICE DATA'}
                         </span>
                     </div>
 
@@ -108,27 +111,22 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                         </p>
                     </div>
 
-                    {/* TIME BOMB INFO (BARU) */}
+                    {/* TIME BOMB INFO */}
                     {proj.dueDate && proj.status === 'active' && (
-                        <div className="mt-4 pt-2 border-t border-neuro-green/20 flex items-center gap-2 text-orange-400 animate-pulse">
+                        <div className="mt-2 pt-2 border-t border-neuro-green/20 flex items-center gap-2 text-orange-400 animate-pulse">
                             <Clock size={12} />
                             <span>BOMB: {new Date(proj.dueDate).toLocaleDateString()}</span>
                         </div>
                     )}
 
-                    {/* Kalo sudah meledak */}
+                    {/* EXPLODED INFO */}
                     {proj.autoBlockTriggered && proj.status === 'blocked' && (
-                        <div className="mt-4 pt-2 border-t border-neuro-red/20 flex items-center gap-2 text-neuro-red">
+                        <div className="mt-2 pt-2 border-t border-neuro-red/20 flex items-center gap-2 text-neuro-red">
                             <Clock size={12} />
                             <span>EXPLODED (EXPIRED)</span>
                         </div>
                     )}
 
-                </div>
-
-                <div className="text-[10px] text-gray-500 mb-8 font-mono flex items-center gap-2">
-                    <Activity size={10} />
-                    LAST PING: {proj.lastCheck ? new Date(proj.lastCheck).toLocaleString() : 'NEVER'}
                 </div>
             </div>
 

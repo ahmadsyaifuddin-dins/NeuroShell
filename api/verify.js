@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   await connectDB();
 
   // 2. Ambil Parameter dari Request
-  const { key, hash, ak } = req.query; 
+  const { key, hash, ak, dv } = req.query; 
 
   // Validasi Dasar
   if (!key) {
@@ -57,11 +57,12 @@ export default async function handler(req, res) {
 
     // INTEL CAPTURE (Update Statistik)
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'] || 'Unknown Device';
-
+    const rawUserAgent = req.headers['user-agent'] || 'Unknown';
+    const hardwareInfo = dv ? dv : rawUserAgent;
+    
     target.lastCheck = new Date();
     target.lastIP = ip ? ip.split(',')[0] : 'Unknown';
-    target.deviceInfo = userAgent;
+    target.deviceInfo = hardwareInfo;
     
     // Simpan perubahan ke database
     await target.save();
