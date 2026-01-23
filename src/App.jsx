@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth';
 import { useProjects } from './hooks/useProjects';
 import { useLogs } from './hooks/useLogs';
 import { copyProjectConfig } from './utils/configGenerator';
+import { useToast } from './hooks/useToast';
 
 // Import Komponen UI
 import LockScreen from './components/LockScreen';
@@ -19,6 +20,7 @@ import LogHistoryModal from './components/LogHistoryModal';
 function App() {
   // 1. HOOKS (Logic Data & Auth)
   const { isAuthenticated, login, logout } = useAuth();
+  const { success, error } = useToast();
 
   const {
     projects, loading: projectsLoading, fetchProjects,
@@ -42,6 +44,15 @@ function App() {
 
   // 4. EVENT HANDLERS (Jembatan antara UI dan Hooks)
 
+  const handleAddProject = async (name, key, date) => {
+    const result = await addProject(name, key, date);
+    if (result) {
+      success('NEW NODE INJECTED.');
+    } else {
+      error('DUPLICATE KEY OR SERVER ERROR.');
+    }
+  };
+
   const handleViewLogs = (project) => {
     setLogTargetProject(project);
     setLogModalOpen(true);
@@ -55,13 +66,23 @@ function App() {
   };
 
   const handleExecuteDelete = async () => {
-    const success = await deleteProject(deleteTargetId);
-    if (success) setDeleteTargetId(null);
+    const result = await deleteProject(deleteTargetId);
+    if (result) {
+      setDeleteTargetId(null);
+      success('TARGET TERMINATED SUCCESSFULLY.');
+    } else {
+      error('FAILED TO DELETE TARGET.');
+    }
   };
 
   const handleSaveEdit = async (id, name, key, date, msg, cacheDur) => {
-    const success = await updateProject(id, name, key, date, msg, cacheDur);
-    if (success) setEditingProject(null);
+    const result = await updateProject(id, name, key, date, msg, cacheDur);
+    if (result) {
+      setEditingProject(null);
+      success('TARGET EDITED SUCCESSFULLY.');
+    } else {
+      error('FAILED TO EDIT TARGET.');
+    }
   };
 
   // --- RENDER VIEW ---
@@ -105,7 +126,7 @@ function App() {
 
       {/* --- MAIN CONTENT --- */}
       <main className="max-w-6xl mx-auto space-y-12">
-        <ProjectForm onAdd={addProject} />
+        <ProjectForm onAdd={handleAddProject} />
 
         <div className="flex items-center gap-2 text-xs text-neuro-green/40">
           <Server size={14} />
