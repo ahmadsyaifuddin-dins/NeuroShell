@@ -9,6 +9,7 @@ import ProjectForm from './components/ProjectForm';
 import ProjectCard from './components/ProjectCard';
 import EditModal from './components/EditModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import LogHistoryModal from './components/LogHistoryModal';
 
 function App() {
   // AUTH LOGIC 
@@ -33,6 +34,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deleteTargetId, setDeleteTargetId] = useState(null); // ID yg mau dihapus
+
+  const [logModalOpen, setLogModalOpen] = useState(false);
+  const [currentLogs, setCurrentLogs] = useState([]);
+  const [logTargetProject, setLogTargetProject] = useState(null);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const BASE_URL = '/api';
   const ADMIN_URL = `${BASE_URL}/admin`;
@@ -115,6 +121,27 @@ function App() {
     }
   };
 
+  // --- FUNGSI LIHAT LOG ---
+  const handleViewLogs = async (project) => {
+    setLogTargetProject(project);
+    setLogModalOpen(true);
+    setLogsLoading(true);
+
+    try {
+      const res = await axios.post(ADMIN_URL, {
+        action: 'get_logs',
+        id: project._id
+      });
+      if (Array.isArray(res.data)) {
+        setCurrentLogs(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch logs");
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   const handleCopyConfig = (licenseKey) => {
     // 1. Tentukan URL Production (JANGAN localhost, harus Vercel)
     const TARGET_URL = "https://neuro-shell.vercel.app/api/verify";
@@ -142,9 +169,6 @@ function App() {
 
     // 5. Salin ke Clipboard
     navigator.clipboard.writeText(textToCopy);
-
-    // Feedback UI (Optional, kalau kamu pakai state copied)
-    // alert("Config Copied! Ready to inject.");
   };
 
   // --- RENDER ---
@@ -182,6 +206,17 @@ function App() {
         onConfirm={executeDelete} // Eksekusi jika password benar
       />
 
+
+      {/* MODAL LOGS */}
+      {logModalOpen && (
+        <LogHistoryModal
+          logs={currentLogs}
+          projectName={logTargetProject?.projectName}
+          isLoading={logsLoading}
+          onClose={() => setLogModalOpen(false)}
+        />
+      )}
+
       <main className="max-w-6xl mx-auto space-y-12">
         <ProjectForm onAdd={handleAddProject} />
 
@@ -213,6 +248,7 @@ function App() {
               onDelete={initiateDelete}
               onCopy={handleCopyConfig}
               onEdit={(project) => setEditingProject(project)}
+              onViewLogs={handleViewLogs}
             />
           ))}
         </div>

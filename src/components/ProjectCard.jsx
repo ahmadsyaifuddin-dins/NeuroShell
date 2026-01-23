@@ -1,9 +1,9 @@
 import { useState } from 'react';
 // Tambahkan ikon 'Monitor' atau 'Laptop' dari lucide-react
-import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare, Key, Monitor, Wifi } from 'lucide-react';
+import { Activity, ShieldAlert, Trash2, Power, Code, Check, Clock, Pencil, MessageSquare, Key, Monitor, Wifi, FileText } from 'lucide-react';
 import { formatDateTime } from '../utils/date';
 
-export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }) {
+export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit, onViewLogs }) {
     const [copied, setCopied] = useState(false);
 
     const handleCopyBackupKey = () => {
@@ -54,6 +54,10 @@ export default function ProjectCard({ proj, onToggle, onDelete, onCopy, onEdit }
                     <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                         <button onClick={handleCopy} className="p-2 hover:bg-neuro-green hover:text-black rounded transition text-neuro-green" title="Copy Config">
                             {copied ? <Check size={16} /> : <Code size={16} />}
+                        </button>
+
+                        <button onClick={() => onViewLogs(proj)} className="p-2 hover:bg-blue-500 hover:text-white rounded transition text-blue-400" title="View Logs">
+                            <FileText size={16} />
                         </button>
 
                         {proj.backupAppKey && (

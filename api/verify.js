@@ -1,5 +1,5 @@
 import connectDB from './db_connect.js';
-import Project from './models.js';
+import { Project, AccessLog } from './models.js';
 
 export default async function handler(req, res) {
   // 1. Konek Database
@@ -66,6 +66,19 @@ export default async function handler(req, res) {
     
     // Simpan perubahan ke database
     await target.save();
+
+    // REKAM JEJAK LOG (FORENSIK)
+    try {
+        await AccessLog.create({
+            projectId: target._id,
+            ip: target.lastIP,
+            deviceInfo: target.deviceInfo,
+            status: target.status, // Status saat itu (Active/Blocked)
+            timestamp: new Date()
+        });
+    } catch (logErr) {
+        console.error("Log Error:", logErr); // Jangan sampai error log bikin aplikasi mati
+    }
 
     // RESPONSE KE CLIENT
     const durationMinutes = target.cacheDuration !== undefined ? target.cacheDuration : 5;

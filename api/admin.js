@@ -1,5 +1,5 @@
 import connectDB from './db_connect.js';
-import Project from './models.js';
+import { Project, AccessLog } from './models.js';
 
 export default async function handler(req, res) {
   // 1. Konek Database
@@ -68,9 +68,19 @@ export default async function handler(req, res) {
         return res.status(200).json(updated);
       }
 
+      if (action === 'get_logs') {
+        // Ambil 50 Log terakhir, urutkan dari yang terbaru
+        const logs = await AccessLog.find({ projectId: id })
+            .sort({ timestamp: -1 })
+            .limit(50);
+            
+        return res.status(200).json(logs);
+      }
+
       // ACTION: DELETE
       if (action === 'delete') {
         await Project.findByIdAndDelete(id);
+        await AccessLog.deleteMany({ projectId: id });
         return res.status(200).json({ success: true });
       }
 
