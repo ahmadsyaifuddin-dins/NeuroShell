@@ -8,6 +8,7 @@ import Header from './components/Header';
 import ProjectForm from './components/ProjectForm';
 import ProjectCard from './components/ProjectCard';
 import EditModal from './components/EditModal';
+import DeleteConfirmModal from './components/DeleteConfirmModal';
 
 function App() {
   // AUTH LOGIC 
@@ -31,6 +32,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [deleteTargetId, setDeleteTargetId] = useState(null); // ID yg mau dihapus
 
   const BASE_URL = '/api';
   const ADMIN_URL = `${BASE_URL}/admin`;
@@ -98,12 +100,19 @@ function App() {
     }
   };
 
-  const handleDeleteProject = async (id) => {
-    if (!confirm("CONFIRM DELETION: This node will be permanently removed.")) return;
+  const initiateDelete = (id) => {
+    setDeleteTargetId(id); // Simpan ID dan Buka Modal
+  };
+
+  // 2. Fungsi ini dipanggil oleh Modal setelah Password 'Masdianah' Benar
+  const executeDelete = async () => {
     try {
-      await axios.post(ADMIN_URL, { action: 'delete', id });
-      fetchProjects();
-    } catch (err) { alert("Error deleting."); }
+      await axios.post(ADMIN_URL, { action: 'delete', id: deleteTargetId });
+      setDeleteTargetId(null); // Tutup Modal
+      fetchProjects(); // Refresh data
+    } catch (err) {
+      alert("Error deleting.");
+    }
   };
 
   const handleCopyConfig = (licenseKey) => {
@@ -167,6 +176,12 @@ function App() {
         />
       )}
 
+      <DeleteConfirmModal
+        isOpen={!!deleteTargetId} // Buka jika ada ID
+        onClose={() => setDeleteTargetId(null)} // Tutup jika cancel
+        onConfirm={executeDelete} // Eksekusi jika password benar
+      />
+
       <main className="max-w-6xl mx-auto space-y-12">
         <ProjectForm onAdd={handleAddProject} />
 
@@ -195,7 +210,7 @@ function App() {
               key={proj._id}
               proj={proj}
               onToggle={handleToggleStatus}
-              onDelete={handleDeleteProject}
+              onDelete={initiateDelete}
               onCopy={handleCopyConfig}
               onEdit={(project) => setEditingProject(project)}
             />
