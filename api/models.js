@@ -30,9 +30,15 @@ const AccessLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+const AdminSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true } // Akan disimpan dalam bentuk Hash
+});
+
 // 3. EXPORT MODEL
 // Kita gunakan logika: Kalau model sudah ada, pakai yg ada. Kalau belum, buat baru.
 const Project = mongoose.models.Project || mongoose.model('Project', ProjectSchema);
 const AccessLog = mongoose.models.AccessLog || mongoose.model('AccessLog', AccessLogSchema);
+const Admin = mongoose.models.Admin || mongoose.model('Admin', AdminSchema);
 
-export { Project, AccessLog };
+export { Project, AccessLog, Admin };

@@ -1,53 +1,107 @@
 import { useState } from 'react';
-import { Lock, Unlock, ChevronRight } from 'lucide-react';
+import { Lock, Fingerprint, User, Key, ChevronRight, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 
 export default function LockScreen({ onUnlock }) {
-    const [pin, setPin] = useState('');
-    const [error, setError] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        const SECRET_PIN = import.meta.env.VITE_LOCK_PIN || "0000";
+        setLoading(true);
+        setError('');
 
-        if (pin === SECRET_PIN) {
-            onUnlock();
-        } else {
-            setError(true);
-            setPin('');
-            setTimeout(() => setError(false), 1000);
+        try {
+            // Panggil API Login
+            const res = await axios.post('/api/login', { username, password });
+
+            if (res.data.status === 'success') {
+                // Simpan token yang dikasih server
+                localStorage.setItem('neuro_session', res.data.token);
+                onUnlock(); // Buka Dashboard
+            }
+        } catch (err) {
+            setError('ACCESS DENIED: Invalid Credentials');
+            setPassword(''); // Reset password biar ngetik ulang
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-neuro-black text-neuro-green font-mono z-50 fixed inset-0">
-            <div className={`p-8 border border-neuro-green/30 bg-neuro-dark/90 backdrop-blur-md rounded-sm shadow-[0_0_50px_rgba(0,255,65,0.1)] transition-transform duration-100 ${error ? 'translate-x-[-10px]' : ''}`}>
-                <div className="flex justify-center mb-6">
-                    <div className={`p-4 rounded-full border ${error ? 'border-neuro-red bg-neuro-red/10 text-neuro-red' : 'border-neuro-green bg-neuro-green/10 text-neuro-green'}`}>
-                        {error ? <Lock size={32} /> : <Unlock size={32} />}
+        <div className="fixed inset-0 bg-neuro-black flex items-center justify-center p-4 z-[9999]">
+            {/* Background Effects */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neuro-green/5 via-neuro-black to-neuro-black pointer-events-none"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-neuro-green shadow-[0_0_20px_#00ff41]"></div>
+
+            <div className="w-full max-w-sm relative">
+                {/* Header Logo */}
+                <div className="text-center mb-8 animate-pulse">
+                    <div className="inline-block p-4 rounded-full border border-neuro-green/30 bg-neuro-green/5 mb-4 shadow-[0_0_30px_rgba(0,255,65,0.1)]">
+                        <Fingerprint size={48} className="text-neuro-green" />
                     </div>
+                    <h1 className="text-2xl font-bold text-white tracking-[0.2em] font-mono">NEURO<span className="text-neuro-green">SHELL</span></h1>
+                    <p className="text-[10px] text-neuro-green/50 tracking-widest mt-2">SECURE ACCESS GATEWAY v2.0</p>
                 </div>
 
-                <h2 className="text-xl font-bold text-center mb-2 tracking-widest text-white">SYSTEM LOCKED</h2>
-                <p className="text-xs text-center text-neuro-green/50 mb-6">ENTER SECURITY CLEARANCE CODE</p>
+                {/* Login Form */}
+                <form onSubmit={handleLogin} className="space-y-4 relative z-10">
 
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                    <input
-                        type="password"
-                        autoFocus
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                        className="bg-black/50 border border-neuro-green/30 p-2 text-center text-xl tracking-[0.5em] text-neuro-green focus:outline-none focus:border-neuro-green w-40"
-                        placeholder="****"
-                        maxLength={6}
-                    />
-                    <button type="submit" className="bg-neuro-green text-black p-2 hover:bg-white transition-colors">
-                        <ChevronRight size={24} />
+                    {/* Error Message */}
+                    {error && (
+                        <div className="bg-neuro-red/10 border border-neuro-red/50 p-3 rounded flex items-center gap-2 text-neuro-red text-xs font-bold animate-pulse">
+                            <AlertCircle size={14} /> {error}
+                        </div>
+                    )}
+
+                    {/* Username Input */}
+                    <div className="group relative">
+                        <div className="absolute left-3 top-3 text-neuro-green/50 group-focus-within:text-neuro-green transition-colors">
+                            <User size={18} />
+                        </div>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="OPERATOR ID"
+                            className="w-full bg-black/40 border border-neuro-green/20 rounded py-3 pl-10 pr-4 text-neuro-green placeholder-neuro-green/20 focus:outline-none focus:border-neuro-green focus:shadow-[0_0_15px_rgba(0,255,65,0.2)] transition-all text-sm font-mono tracking-wider"
+                            autoComplete="off"
+                        />
+                    </div>
+
+                    {/* Password Input */}
+                    <div className="group relative">
+                        <div className="absolute left-3 top-3 text-neuro-green/50 group-focus-within:text-neuro-green transition-colors">
+                            <Key size={18} />
+                        </div>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="ACCESS CODE"
+                            className="w-full bg-black/40 border border-neuro-green/20 rounded py-3 pl-10 pr-4 text-neuro-green placeholder-neuro-green/20 focus:outline-none focus:border-neuro-green focus:shadow-[0_0_15px_rgba(0,255,65,0.2)] transition-all text-sm font-mono tracking-wider"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-neuro-green text-black font-bold py-3 rounded hover:bg-white hover:shadow-[0_0_20px_rgba(0,255,65,0.5)] transition-all duration-300 flex items-center justify-center gap-2 tracking-[0.1em] disabled:opacity-50 disabled:cursor-not-allowed group"
+                    >
+                        {loading ? 'AUTHENTICATING...' : 'INITIALIZE SESSION'}
+                        {!loading && <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />}
                     </button>
                 </form>
 
-                {error && (
-                    <p className="text-neuro-red text-xs text-center mt-4 animate-pulse">ACCESS DENIED. INVALID CREDENTIALS.</p>
-                )}
+                {/* Footer Info */}
+                <div className="mt-8 text-center">
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-neuro-green/30 font-mono">
+                        <Lock size={10} />
+                        <span>ENCRYPTED CONNECTION // SHA-256</span>
+                    </div>
+                </div>
             </div>
         </div>
     );
