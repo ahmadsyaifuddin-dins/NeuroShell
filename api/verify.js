@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       return res.json({ status: 'blocked', message: 'License Key Invalid.' });
     }
 
-    // FINGERPRINT & BACKUP STRATEGY
+    // FINGERPRINT & BACKUP STRATEGY ---
     if (hash) {
       // A. KONEKSI PERTAMA (Simpan Fingerprint jika belum ada)
       if (!target.clientFingerprint) {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // TIME BOMB CHECK
+    // --- TIME BOMB CHECK ---
     if (target.status === 'active' && target.dueDate) {
       const now = new Date();
       const expiryDate = new Date(target.dueDate);
@@ -55,29 +55,62 @@ export default async function handler(req, res) {
       }
     }
 
-    // INTEL CAPTURE (Update Statistik)
+    // --- INTEL CAPTURE (Update Statistik Project) ---
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const rawUserAgent = req.headers['user-agent'] || 'Unknown';
+    // Prioritaskan Hardware Info dari PHP ('dv'), kalau kosong baru pakai User-Agent browser
     const hardwareInfo = dv ? dv : rawUserAgent;
     
+    // Update data realtime di kartu Project
     target.lastCheck = new Date();
     target.lastIP = ip ? ip.split(',')[0] : 'Unknown';
     target.deviceInfo = hardwareInfo;
     
-    // Simpan perubahan ke database
+    // Simpan perubahan status/lastCheck ke database project
     await target.save();
 
-    // REKAM JEJAK LOG (FORENSIK)
+
+    // SMART LOGGING SYSTEM (ANTI-SPAM FORENSIK)
     try {
-        await AccessLog.create({
-            projectId: target._id,
-            ip: target.lastIP,
-            deviceInfo: target.deviceInfo,
-            status: target.status, // Status saat itu (Active/Blocked)
-            timestamp: new Date()
-        });
+        // 1. Ambil Log Terakhir dari Project ini (untuk dibandingkan)
+        const lastLog = await AccessLog.findOne({ projectId: target._id }).sort({ timestamp: -1 });
+
+        // 2. Hitung Selisih Waktu & Perubahan
+        const now = new Date();
+        const lastLogTime = lastLog ? new Date(lastLog.timestamp) : new Date(0); // Kalau gak ada log, set waktu 0
+        const diffMinutes = (now - lastLogTime) / 1000 / 60; // Konversi ms ke menit
+
+        // Cek apakah IP berubah dari log terakhir?
+        const isIpChanged = lastLog && lastLog.ip !== target.lastIP;
+        
+        // Cek apakah Status berubah (Active <-> Blocked)?
+        const isStatusChanged = lastLog && lastLog.status !== target.status;
+
+        // 3. LOGIC SAKTI:
+        // Cuma catat ke database jika salah satu kondisi terpenuhi:
+        // A. Belum pernah ada log sama sekali (First Connect)
+        // B. IP-nya berubah (Indikasi pindah tempat/wifi)
+        // C. Status berubah (Indikasi baru saja diblokir/dibuka)
+        // D. Sudah lebih dari 15 menit dari log terakhir (Heartbeat session baru)
+        if (!lastLog || isIpChanged || isStatusChanged || diffMinutes > 15) {
+            
+            await AccessLog.create({
+                projectId: target._id,
+                ip: target.lastIP,
+                deviceInfo: target.deviceInfo,
+                status: target.status,
+                timestamp: now
+            });
+            
+            console.log(`[LOG] New record created for ${target.projectName}`);
+        } else {
+            // Jika request terlalu cepat (spam) dari IP yang sama, skip log ini
+            // Biar database gak penuh sampah refresh
+            // console.log(`[LOG] Skipped (Spam detected/Same session)`);
+        }
+
     } catch (logErr) {
-        console.error("Log Error:", logErr); // Jangan sampai error log bikin aplikasi mati
+        console.error("Log Error:", logErr);
     }
 
     // RESPONSE KE CLIENT
