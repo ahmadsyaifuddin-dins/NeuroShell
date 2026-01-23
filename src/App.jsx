@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Activity, Server } from 'lucide-react';
 
-// Import Komponen Modular
+// Import Hooks & Utils Modular
+import { useAuth } from './hooks/useAuth';
+import { useProjects } from './hooks/useProjects';
+import { useLogs } from './hooks/useLogs';
+import { copyProjectConfig } from './utils/configGenerator';
+
+// Import Komponen UI
 import LockScreen from './components/LockScreen';
 import Header from './components/Header';
 import ProjectForm from './components/ProjectForm';
@@ -12,228 +17,110 @@ import DeleteConfirmModal from './components/DeleteConfirmModal';
 import LogHistoryModal from './components/LogHistoryModal';
 
 function App() {
-  // AUTH LOGIC 
-  // Cek localStorage saat pertama kali load
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('neuro_access_token') === 'GRANTED';
-  });
+  // 1. HOOKS (Logic Data & Auth)
+  const { isAuthenticated, login, logout } = useAuth();
 
-  // Fungsi Login (Dipanggil dari LockScreen)
-  const handleLogin = () => {
-    localStorage.setItem('neuro_access_token', 'GRANTED');
-    setIsAuthenticated(true);
-  };
+  const {
+    projects, loading: projectsLoading, fetchProjects,
+    addProject, toggleStatus, updateProject, deleteProject
+  } = useProjects();
 
-  // Fungsi Logout (Dipanggil dari Header)
-  const handleLogout = () => {
-    localStorage.removeItem('neuro_access_token');
-    setIsAuthenticated(false);
-  };
+  const { logs, loading: logsLoading, fetchLogs, clearLogs } = useLogs();
 
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // 2. UI STATE (Hanya untuk kontrol Modal)
   const [editingProject, setEditingProject] = useState(null);
-  const [deleteTargetId, setDeleteTargetId] = useState(null); // ID yg mau dihapus
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
+  // State Log UI
   const [logModalOpen, setLogModalOpen] = useState(false);
-  const [currentLogs, setCurrentLogs] = useState([]);
   const [logTargetProject, setLogTargetProject] = useState(null);
-  const [logsLoading, setLogsLoading] = useState(false);
 
-  const BASE_URL = '/api';
-  const ADMIN_URL = `${BASE_URL}/admin`;
-
-  // LOGIC FUNCTIONS 
-  const fetchProjects = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(ADMIN_URL);
-      if (Array.isArray(res.data)) setProjects(res.data);
-      else setProjects([]);
-    } catch (err) {
-      setProjects([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 3. EFFECT
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchProjects();
-    }
-  }, [isAuthenticated]);
+    if (isAuthenticated) fetchProjects();
+  }, [isAuthenticated, fetchProjects]);
 
-  const handleAddProject = async (name, key, date) => {
-    try {
-      await axios.post(ADMIN_URL, {
-        action: 'create',
-        projectName: name,
-        licenseKey: key,
-        message: 'License Valid. System Operational.',
-        dueDate: date || null
-      });
-      fetchProjects();
-    } catch (err) {
-      alert("Error: Key duplicated or Server issue.");
-    }
-  };
+  // 4. EVENT HANDLERS (Jembatan antara UI dan Hooks)
 
-  const handleToggleStatus = async (id, currentStatus) => {
-    const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
-    try {
-      await axios.post(ADMIN_URL, { action: 'update_status', id, status: newStatus });
-      fetchProjects();
-    } catch (err) { alert("Error updating status."); }
-  };
-
-  // Handle Save Edit
-  const handleUpdateProject = async (id, name, key, date, msg, cacheDuration) => {
-    try {
-      // console.log("Sending Data:", { id, name, key, date, msg }); // Cek data yg dikirim
-      await axios.post(ADMIN_URL, {
-        action: 'update_details',
-        id: id,
-        projectName: name,
-        licenseKey: key,
-        dueDate: date || null,
-        message: msg,
-        cacheDuration: cacheDuration
-      });
-
-      setEditingProject(null);
-      fetchProjects();
-    } catch (err) {
-    }
-  };
-
-  const initiateDelete = (id) => {
-    setDeleteTargetId(id); // Simpan ID dan Buka Modal
-  };
-
-  // 2. Fungsi ini dipanggil oleh Modal setelah Password 'Masdianah' Benar
-  const executeDelete = async () => {
-    try {
-      await axios.post(ADMIN_URL, { action: 'delete', id: deleteTargetId });
-      setDeleteTargetId(null); // Tutup Modal
-      fetchProjects(); // Refresh data
-    } catch (err) {
-      alert("Error deleting.");
-    }
-  };
-
-  // --- FUNGSI LIHAT LOG ---
-  const handleViewLogs = async (project) => {
+  const handleViewLogs = (project) => {
     setLogTargetProject(project);
     setLogModalOpen(true);
-    setLogsLoading(true);
-
-    try {
-      const res = await axios.post(ADMIN_URL, {
-        action: 'get_logs',
-        id: project._id
-      });
-      if (Array.isArray(res.data)) {
-        setCurrentLogs(res.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch logs");
-    } finally {
-      setLogsLoading(false);
-    }
+    fetchLogs(project._id);
   };
 
-  const handleCopyConfig = (licenseKey) => {
-    // 1. Tentukan URL Production (JANGAN localhost, harus Vercel)
-    const TARGET_URL = "https://neuro-shell.vercel.app/api/verify";
-
-    // 2. Fungsi Helper: String ke ASCII Array (format: 104, 116, ...)
-    const toAscii = (str) => {
-      return str.split('').map(char => char.charCodeAt(0)).join(', ');
-    };
-
-    // 3. Generate ASCII
-    const asciiUrl = toAscii(TARGET_URL);
-    const asciiKey = toAscii(licenseKey);
-
-    // 4. Template Teks untuk dicopy
-    const textToCopy = `
-        // --- [PASTE INI DI FILE: App/Traits/SystemIntegrityTrait.php] ---
-        // Gantikan bagian "// 3. KONFIGURASI TERSEMBUNYI" dengan ini:
-
-        // URL ENGINE
-        $rawUrl = [${asciiUrl}];
-        
-        // LICENSE KEY: "${licenseKey}"
-        $rawKey = [${asciiKey}];
-    `;
-
-    // 5. Salin ke Clipboard
-    navigator.clipboard.writeText(textToCopy);
+  const closeLogModal = () => {
+    setLogModalOpen(false);
+    setLogTargetProject(null);
+    clearLogs();
   };
 
-  // --- RENDER ---
+  const handleExecuteDelete = async () => {
+    const success = await deleteProject(deleteTargetId);
+    if (success) setDeleteTargetId(null);
+  };
 
-  // 1. Tampilkan Lock Screen jika belum login
-  if (!isAuthenticated) {
-    // Ubah onUnlock jadi handleLogin
-    return <LockScreen onUnlock={handleLogin} />;
-  }
+  const handleSaveEdit = async (id, name, key, date, msg, cacheDur) => {
+    const success = await updateProject(id, name, key, date, msg, cacheDur);
+    if (success) setEditingProject(null);
+  };
 
-  // 2. Tampilkan Dashboard jika sudah login
+  // --- RENDER VIEW ---
+
+  if (!isAuthenticated) return <LockScreen onUnlock={login} />;
+
   return (
     <div className="min-h-screen bg-neuro-black p-4 md:p-8 text-neuro-green font-mono selection:bg-neuro-green selection:text-neuro-black pb-20">
 
-      {/* Pass fungsi Logout ke Header */}
       <Header
-        loading={loading}
+        loading={projectsLoading}
         onRefresh={fetchProjects}
         projectCount={projects.length}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
 
-      {/* TAMPILKAN MODAL JIKA ADA PROJECT YANG DIEDIT */}
+      {/* --- MODALS --- */}
+
       {editingProject && (
         <EditModal
           project={editingProject}
           onClose={() => setEditingProject(null)}
-          onSave={handleUpdateProject}
+          onSave={handleSaveEdit}
         />
       )}
 
       <DeleteConfirmModal
-        isOpen={!!deleteTargetId} // Buka jika ada ID
-        onClose={() => setDeleteTargetId(null)} // Tutup jika cancel
-        onConfirm={executeDelete} // Eksekusi jika password benar
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={handleExecuteDelete}
       />
 
-
-      {/* MODAL LOGS */}
       {logModalOpen && (
         <LogHistoryModal
-          logs={currentLogs}
+          logs={logs}
           projectName={logTargetProject?.projectName}
           isLoading={logsLoading}
-          onClose={() => setLogModalOpen(false)}
+          onClose={closeLogModal}
         />
       )}
 
+      {/* --- MAIN CONTENT --- */}
       <main className="max-w-6xl mx-auto space-y-12">
-        <ProjectForm onAdd={handleAddProject} />
+        <ProjectForm onAdd={addProject} />
 
         <div className="flex items-center gap-2 text-xs text-neuro-green/40">
           <Server size={14} />
-          <span>STATUS: {loading ? "SYNCING..." : "ONLINE"}</span>
+          <span>STATUS: {projectsLoading ? "SYNCING..." : "ONLINE"}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && projects.length === 0 && (
+          {projectsLoading && projects.length === 0 && (
             <div className="col-span-full py-20 text-center border border-dashed border-neuro-green/20 rounded bg-neuro-green/5 animate-pulse">
               <div className="inline-block p-2 mb-2"><Activity className="animate-spin" /></div>
               <p className="tracking-[0.2em]">ESTABLISHING NEURAL LINK...</p>
             </div>
           )}
 
-          {!loading && projects.length === 0 && (
+          {!projectsLoading && projects.length === 0 && (
             <div className="col-span-full py-20 text-center border border-neuro-green/10 rounded text-neuro-green/40">
               <p>NO ACTIVE NODES DETECTED.</p>
               <p className="text-xs mt-2">Deploy a new target to begin.</p>
@@ -244,9 +131,9 @@ function App() {
             <ProjectCard
               key={proj._id}
               proj={proj}
-              onToggle={handleToggleStatus}
-              onDelete={initiateDelete}
-              onCopy={handleCopyConfig}
+              onToggle={toggleStatus}
+              onDelete={(id) => setDeleteTargetId(id)}
+              onCopy={copyProjectConfig}
               onEdit={(project) => setEditingProject(project)}
               onViewLogs={handleViewLogs}
             />
