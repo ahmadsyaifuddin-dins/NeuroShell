@@ -43,8 +43,8 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm }) {
                             <AlertTriangle size={24} />
                         </div>
                         <div className="text-xs text-gray-400 font-mono leading-relaxed">
-                            <p className="mb-2 text-white font-bold">WARNING: IRREVERSIBLE ACTION.</p>
-                            <p>This action will permanently delete the project configuration and access logs. To authorize this destruction, enter the administrative password.</p>
+                            <p className="mb-2 text-white font-bold">PERINGATAN: TINDAKAN INI TIDAK DAPAT DIBATALKAN.</p>
+                            <p>Tindakan ini akan menghapus konfigurasi proyek dan log akses secara permanen. Untuk mengotorisasi penghancuran ini, masukkan kata sandi tertinggi.</p>
                         </div>
                     </div>
 
@@ -63,8 +63,8 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm }) {
                                 }}
                                 placeholder="Enter password..."
                                 className={`w-full bg-black/50 border p-3 text-white focus:outline-none font-mono text-sm rounded transition-all ${error
-                                        ? 'border-neuro-red text-neuro-red placeholder-neuro-red/50 animate-pulse'
-                                        : 'border-neuro-red/30 focus:border-neuro-red'
+                                    ? 'border-neuro-red text-neuro-red placeholder-neuro-red/50 animate-pulse'
+                                    : 'border-neuro-red/30 focus:border-neuro-red'
                                     }`}
                             />
                             {error && (
