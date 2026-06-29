@@ -33,7 +33,7 @@ export default function AppKeyModal({ isOpen, onClose, onConfirm }) {
                             <Terminal size={14} /> <span className="tracking-widest font-bold">INSTRUCTION:</span>
                         </div>
                         <p className="leading-relaxed">
-                            Silakan COPY kunci ini dan PASTE ke dalam file <span className="text-white bg-gray-800 px-1 py-0.5 rounded">.env</span> pada project terkait untuk menggantikan nilai <span className="text-yellow-500">APP_KEY=</span> yang saat ini digunakan.
+                            Silakan COPY kunci ini dan PASTE ke dalam file <span className="text-white bg-gray-800 px-1 py-0.5 rounded">.env</span> pada project terkait untuk menggantikan nilai/variabel <span className="text-yellow-500">APP_KEY=</span> yang saat ini digunakan.
                         </p>
                     </div>
                 </div>
