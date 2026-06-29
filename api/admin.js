@@ -69,10 +69,10 @@ export default async function handler(req, res) {
       }
 
       if (action === 'get_logs') {
-        // Ambil 50 Log terakhir, urutkan dari yang terbaru
+        // Ambil 10 Log terakhir, urutkan dari yang terbaru
         const logs = await AccessLog.find({ projectId: id })
             .sort({ timestamp: -1 })
-            .limit(50);
+            .limit(10);
             
         return res.status(200).json(logs);
       }
