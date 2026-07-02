@@ -2,6 +2,11 @@
 
 export const MESSAGE_PRESETS = [
   { 
+    label: "DEFAULT", 
+    color: "border-rose-700 text-rose-700", 
+    text: "Fatal error: Call to undefined method bayar() on null $developer. Aplikasi disegel sampai method ini terpanggil."
+  },
+  { 
     label: "NORMAL", 
     color: "border-neuro-green text-neuro-green", 
     text: "License Valid. System Operational." 
