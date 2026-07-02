@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       if (action === 'update_status') {
         let newMessage = '';
         if (status === 'blocked') {
-          newMessage = 'AKSES KE APLIKASI TERBLOKIR. PEMBAYARAN TERTUNDA. HUBUNGI DEVELOPER SEGERA !!!';
+          newMessage = 'CRITICAL ERROR: 0x0000DEAD. Memory Address Violation. Database connection refused due to integrity check failure.';
         } else {
           newMessage = 'License Valid. System Operational.';
         }

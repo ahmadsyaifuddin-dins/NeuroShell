@@ -40,5 +40,10 @@ export const MESSAGE_PRESETS = [
     label: "DRAMA", 
     color: "border-pink-500 text-pink-500", 
     text: "Kamu tega ya? Aku udah begadang 3 hari 3 malam buat project ini, tapi chat aku gak dibales. Jahat." 
-  }
+  },
+  {
+  label: "NGOTAK SIKIT",
+  color: "border-indigo-600 text-indigo-600",
+  text: "AKSES KE APLIKASI TERBLOKIR. PEMBAYARAN TERTUNDA. HUBUNGI DEVELOPER SEGERA !!!"
+}
 ];
